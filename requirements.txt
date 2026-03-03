@@ -8,4 +8,9 @@ langchain-pinecone
 langchain_community
 langchain_openai
 langchain_experimental
+SQLAlchemy
+Flask-SQLAlchemy
+langchain-huggingface
 -e .
+
+Flask-Limiter
