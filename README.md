@@ -1,172 +1,124 @@
-🩺 Medical RAG Chatbot (LangChain + Pinecone)
+# 🩺 Medical RAG Chatbot (LangChain + Pinecone)
 
-This project is a medical question-answering chatbot built using LangChain and Pinecone.
-It reads medical PDF files and answers user questions based on those documents.
+A production-ready, full-stack medical question-answering conversational AI built with **LangChain**, **Pinecone**, and **Flask**. 
+This application reads medical PDF documents and answers user queries using **Retrieval-Augmented Generation (RAG)**, drastically reducing hallucinations by grounding the AI in factual medical documents.
 
-The chatbot uses Retrieval-Augmented Generation (RAG), which means:
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Flask](https://img.shields.io/badge/flask-latest-green)
 
-It first searches relevant content from PDFs
+---
 
-Then uses an LLM to generate answers
+## ✨ Features (Refactored & Upgraded)
 
-This helps reduce wrong or made-up answers
+- **Conversational Memory**: Remembers past interactions per session using SQLite and LangChain's `RunnableWithMessageHistory`.
+- **Real-Time Streaming**: Uses Server-Sent Events (SSE) to stream GPT-4o-mini responses to the UI just like ChatGPT.
+- **Dynamic PDF Uploads**: Directly upload new medical PDFs from the UI. Documents are chunked and ingested into Pinecone on the fly.
+- **Source Citations**: Every AI response tracks and displays the exact document sources and page numbers used to generate the answer.
+- **Chat History & Sessions**: Creates and manages multiple chat sessions using a robust SQLite database backend (`SQLAlchemy`).
+- **Markdown & Code UI**: A modern Light/Dark themed UI with typing indicators, markdown parsing (`marked.js`), and smooth auto-scrolling.
+- **Export to PDF**: Single-click export of any chat session into a formatted PDF using `html2pdf.js`.
+- **Voice Support**: Integrated Web Speech API for voice-to-text dictation mapping directly into the chat input.
+- **Rate Limiting**: Integrated `Flask-Limiter` to protect API endpoints from spam and abuse.
 
-🛠 Tech Stack
+---
 
-Python
+## 🛠 Tech Stack
 
-Flask – backend web framework
+- **Backend Framework**: Python / Flask / Flask-SQLAlchemy / Flask-Limiter
+- **AI & RAG Pipeline**: LangChain Classic / OpenAI API (`gpt-4o-mini`)
+- **Vector Database**: Pinecone Serverless
+- **Embeddings**: HuggingFace (`sentence-transformers/all-MiniLM-L6-v2`)
+- **Frontend**: Vanilla JS (ES6), HTML5, CSS3, FontAwesome
+- **Deployment**: Docker
 
-LangChain – RAG pipeline
+---
 
-Pinecone – vector database
+## 📂 Project Structure
 
-HuggingFace Embeddings – text embeddings
-
-OpenAI – LLM for answering questions
-
-📂 Project Structure
-
+```text
 medical-rag-chatbot/
-│
-├── app.py                  # Flask app (chat API)
-├── store_index.py          # Script to index PDFs into Pinecone
+├── .env                     # Environment variables (Ignored in Git)
+├── app.py                   # Flask Application API & Controller
+├── config.py                # App Configuration & Env Validations
+├── database.py              # SQLite Database configuration
+├── models.py                # SQL Models (ChatSession, ChatMessage)
+├── Dockerfile               # Containerization configuration
+├── requirements.txt         # Python dependencies
 ├── src/
-│   ├── helper.py           # PDF loading, splitting, embeddings
-│   └── prompt.py           # System prompt
-│
-├── templates/
-│   └── chat.html           # Chat UI
-│
-├── Data/                   # Medical PDF files
-│   └── *.pdf
-│
-├── requirements.txt
-├── .env                    # Environment variables (NOT pushed to GitHub)
-└── README.md
+│   └── services/
+│       ├── doc_service.py   # Handles PDF upload, chunking, and indexing
+│       ├── llm_service.py   # RAG pipeline, LLM connections, memory
+│       └── vector_service.py# Pinecone embedding wrappers
+├── utils/
+│   ├── rate_limiter.py      # Flask-Limiter definitions
+│   └── prompts.py           # System prompts with hardcoded medical disclaimers
+├── static/
+│   ├── css/style.css        # Responsive, themable styling
+│   └── js/chat.js           # Frontend interactions, SSE streaming, Web Speech
+└── templates/
+    └── chat.html            # Core UI layout
+```
 
+---
 
-🔄 How the Project Works
+## ⚙️ Setup Instructions
 
-Medical PDFs are loaded from the Data/ folder
-
-Text is split into small chunks
-
-Each chunk is converted into embeddings
-
-Embeddings are stored in Pinecone
-
-User asks a question
-
-Relevant text is retrieved from Pinecone
-
-LLM generates a short, accurate answer
-
-⚙️ Setup Instructions (Step by Step)
-1️⃣ Clone the repository
+### 1️⃣ Clone the repository
+```bash
 git clone https://github.com/Shehjad2019/medical-rag-chatbot.git
 cd medical-rag-chatbot
+```
 
-2️⃣ Create a virtual environment (recommended)
+### 2️⃣ Environment Variables
+Create a `.env` file in the root directory:
+```env
+PINECONE_API_KEY=your_pinecone_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+PINECONE_INDEX_NAME=medicalbot
+```
+*(Need keys? Get them at [Pinecone](https://www.pinecone.io) and [OpenAI](https://platform.openai.com/).)*
+
+### 3️⃣ Run Locally (Virtual Environment)
+```bash
+# Create venv and activate
 python -m venv venv
 source venv/bin/activate   # Mac/Linux
 # venv\Scripts\activate    # Windows
 
-3️⃣ Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-🔐 Pinecone Setup (Important)
-Step 1: Create Pinecone Account
-
-Go to 👉 https://www.pinecone.io
-
-Sign up / log in
-
-Go to Dashboard
-
-Step 2: Create Pinecone API Key
-
-Open API Keys section
-
-Copy your API Key
-
-Step 3: Create .env file
-
-In the project root, create a file named .env
-
-PINECONE_API_KEY=your_pinecone_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
-
-
-📌 Index PDFs into Pinecone
-
-Run this once to store embeddings:
-
-python store_index.py
-
-
-This will:
-
-Read PDFs
-
-Create embeddings
-
-Upload them to Pinecone
-
-🚀 Run the Application
+# Run the application
 python app.py
+```
+**Access the app:** `http://localhost:8080`
 
+### 4️⃣ Run via Docker (Recommended for Production)
+```bash
+# Build the image
+docker build -t medical-rag:latest .
 
-Open browser:
+# Run the container (pass env variables or use --env-file)
+docker run -p 8080:8080 \
+  -e OPENAI_API_KEY="your_openai_key" \
+  -e PINECONE_API_KEY="your_pinecone_key" \
+  medical-rag:latest
+```
 
-http://localhost:8080
+---
 
+## ⚠️ Disclaimer & Notes
 
-Ask medical questions through the chat UI.
+- **Educational Purposes Only**: This project is built for learning, prototyping, and portfolio purposes. 
+- **Not Medical Advice**: The AI includes strict system prompt disclaimers warning against using its outputs to replace professional medical diagnosis or treatment.
+- **Data Dependency**: The quality of the RAG responses heavily relies upon the quality of the PDFs uploaded to the Pinecone index.
 
-🧪 Example Questions
+---
 
-What is diabetes?
+## 👨‍💻 Author
 
-What are the symptoms of heart disease?
-
-How is hypertension treated?
-
-⚠️ Current Limitations
-
-Single-turn questions only (no chat memory)
-
-No PDF upload from UI
-
-Uses similarity-based retrieval only
-
-🔮 Future Improvements
-
-Conversational memory
-
-Source citations
-
-Metadata filtering
-
-Streaming responses
-
-Authentication & rate limiting
-
-📌 Notes
-
-This project is meant for learning and demo purposes
-
-Not intended for real medical diagnosis
-
-Answers depend on uploaded PDFs
-
-👨‍💻 Author
-
-Shehjad Patel
+**Shehjad Patel**  
 Computer Engineering | GenAI & LangChain Enthusiast
 
-⭐ If you like this project
-
-Give it a ⭐ on GitHub 😊
-
-
+⭐ **If you like this project, please consider giving it a star on GitHub!** 😊
